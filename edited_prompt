@@ -1,0 +1,517 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "gpuType": "T4",
+      "authorship_tag": "ABX9TyMbFAmxENoYj4TDV0oyevo1",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/nightking1102/OCR_PROJECT/blob/main/edited_prompt\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install google-generativeai\n",
+        "!pip install re"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "jk3xXb01jRg5",
+        "outputId": "66824b9e-89ba-484e-e507-f72316be6c7e"
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: google-generativeai in /usr/local/lib/python3.11/dist-packages (0.8.4)\n",
+            "Requirement already satisfied: google-ai-generativelanguage==0.6.15 in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (0.6.15)\n",
+            "Requirement already satisfied: google-api-core in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (2.24.2)\n",
+            "Requirement already satisfied: google-api-python-client in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (2.164.0)\n",
+            "Requirement already satisfied: google-auth>=2.15.0 in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (2.38.0)\n",
+            "Requirement already satisfied: protobuf in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (5.29.4)\n",
+            "Requirement already satisfied: pydantic in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (2.11.2)\n",
+            "Requirement already satisfied: tqdm in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (4.67.1)\n",
+            "Requirement already satisfied: typing-extensions in /usr/local/lib/python3.11/dist-packages (from google-generativeai) (4.13.1)\n",
+            "Requirement already satisfied: proto-plus<2.0.0dev,>=1.22.3 in /usr/local/lib/python3.11/dist-packages (from google-ai-generativelanguage==0.6.15->google-generativeai) (1.26.1)\n",
+            "Requirement already satisfied: googleapis-common-protos<2.0.0,>=1.56.2 in /usr/local/lib/python3.11/dist-packages (from google-api-core->google-generativeai) (1.69.2)\n",
+            "Requirement already satisfied: requests<3.0.0,>=2.18.0 in /usr/local/lib/python3.11/dist-packages (from google-api-core->google-generativeai) (2.32.3)\n",
+            "Requirement already satisfied: cachetools<6.0,>=2.0.0 in /usr/local/lib/python3.11/dist-packages (from google-auth>=2.15.0->google-generativeai) (5.5.2)\n",
+            "Requirement already satisfied: pyasn1-modules>=0.2.1 in /usr/local/lib/python3.11/dist-packages (from google-auth>=2.15.0->google-generativeai) (0.4.2)\n",
+            "Requirement already satisfied: rsa<5,>=3.1.4 in /usr/local/lib/python3.11/dist-packages (from google-auth>=2.15.0->google-generativeai) (4.9)\n",
+            "Requirement already satisfied: httplib2<1.dev0,>=0.19.0 in /usr/local/lib/python3.11/dist-packages (from google-api-python-client->google-generativeai) (0.22.0)\n",
+            "Requirement already satisfied: google-auth-httplib2<1.0.0,>=0.2.0 in /usr/local/lib/python3.11/dist-packages (from google-api-python-client->google-generativeai) (0.2.0)\n",
+            "Requirement already satisfied: uritemplate<5,>=3.0.1 in /usr/local/lib/python3.11/dist-packages (from google-api-python-client->google-generativeai) (4.1.1)\n",
+            "Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.11/dist-packages (from pydantic->google-generativeai) (0.7.0)\n",
+            "Requirement already satisfied: pydantic-core==2.33.1 in /usr/local/lib/python3.11/dist-packages (from pydantic->google-generativeai) (2.33.1)\n",
+            "Requirement already satisfied: typing-inspection>=0.4.0 in /usr/local/lib/python3.11/dist-packages (from pydantic->google-generativeai) (0.4.0)\n",
+            "Requirement already satisfied: grpcio<2.0dev,>=1.33.2 in /usr/local/lib/python3.11/dist-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0dev,>=1.34.1->google-ai-generativelanguage==0.6.15->google-generativeai) (1.71.0)\n",
+            "Requirement already satisfied: grpcio-status<2.0.dev0,>=1.33.2 in /usr/local/lib/python3.11/dist-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0dev,>=1.34.1->google-ai-generativelanguage==0.6.15->google-generativeai) (1.71.0)\n",
+            "Requirement already satisfied: pyparsing!=3.0.0,!=3.0.1,!=3.0.2,!=3.0.3,<4,>=2.4.2 in /usr/local/lib/python3.11/dist-packages (from httplib2<1.dev0,>=0.19.0->google-api-python-client->google-generativeai) (3.2.3)\n",
+            "Requirement already satisfied: pyasn1<0.7.0,>=0.6.1 in /usr/local/lib/python3.11/dist-packages (from pyasn1-modules>=0.2.1->google-auth>=2.15.0->google-generativeai) (0.6.1)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/dist-packages (from requests<3.0.0,>=2.18.0->google-api-core->google-generativeai) (3.4.1)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/dist-packages (from requests<3.0.0,>=2.18.0->google-api-core->google-generativeai) (3.10)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/dist-packages (from requests<3.0.0,>=2.18.0->google-api-core->google-generativeai) (2.3.0)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/dist-packages (from requests<3.0.0,>=2.18.0->google-api-core->google-generativeai) (2025.1.31)\n",
+            "\u001b[31mERROR: Could not find a version that satisfies the requirement re (from versions: none)\u001b[0m\u001b[31m\n",
+            "\u001b[0m\u001b[31mERROR: No matching distribution found for re\u001b[0m\u001b[31m\n",
+            "\u001b[0m"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 6,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "bp2lZdB2is1L",
+        "outputId": "bfff1c94-3a17-4203-a5fd-6c4196377dfc"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\u001b[31mERROR: Could not find a version that satisfies the requirement json (from versions: none)\u001b[0m\u001b[31m\n",
+            "\u001b[0m\u001b[31mERROR: No matching distribution found for json\u001b[0m\u001b[31m\n",
+            "\u001b[0m"
+          ]
+        }
+      ],
+      "source": [
+        "!pip install json"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import google.generativeai as genai\n",
+        "import json\n",
+        "import time"
+      ],
+      "metadata": {
+        "id": "n2ZTNcDrksdf"
+      },
+      "execution_count": 7,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "GOOGLE_API_KEY = \"AIzaSyB2NPs6qggUh51ciBUr1HTkFXYqO35n_pw\"\n",
+        "genai.configure(api_key=GOOGLE_API_KEY)\n",
+        "\n",
+        "# Set your PDF file path and name\n",
+        "pdf_file = \"//content//RC_0038411_Andrew.pdf\"\n",
+        "name = \"4mba1\"\n"
+      ],
+      "metadata": {
+        "id": "YoYnLsEukzii"
+      },
+      "execution_count": 41,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "*for every new outcome we need to change the **pdf_file path** and name relevent to it, need to use unique **name** every time .*"
+      ],
+      "metadata": {
+        "id": "34xBEPr5AvKr"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Upload file if not already uploaded\n",
+        "try:\n",
+        "    pdfFile = genai.get_file(f\"files/{name}\")\n",
+        "    print(f\"✅ File already exists: {pdfFile.uri}\")\n",
+        "except:\n",
+        "    print(\"⏫ Uploading file...\")\n",
+        "    pdfFile = genai.upload_file(path=pdf_file, name=name, resumable=True)\n",
+        "    print(f\"✅ Upload completed: {pdfFile.uri}\")\n",
+        "\n",
+        "# Wait for file processing\n",
+        "while pdfFile.state.name == \"PROCESSING\":\n",
+        "    print(\".\", end=\"\")\n",
+        "    time.sleep(10)\n",
+        "    pdfFile = genai.get_file(pdfFile.name)\n",
+        "\n",
+        "if pdfFile.state.name == \"FAILED\":\n",
+        "    raise ValueError(f\"❌ File processing failed: {pdfFile.state.name}\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 68
+        },
+        "id": "29KXhZ35lFON",
+        "outputId": "7cd90ff6-e3bc-4b9a-c59b-0b607eb4a616"
+      },
+      "execution_count": 42,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "WARNING:tornado.access:403 GET /v1beta/files/4mba1?%24alt=json%3Benum-encoding%3Dint (127.0.0.1) 729.65ms\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "⏫ Uploading file...\n",
+            "✅ Upload completed: https://generativelanguage.googleapis.com/v1beta/files/4mba1\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model = genai.GenerativeModel(\n",
+        "    model_name=\"gemini-1.5-pro-latest\",\n",
+        "    system_instruction=\"\"\"\n",
+        "You are a powerful logistics document analyst. Your task is to extract structured data from logistics rate confirmation PDFs/images and return it in the following strict JSON format:\n",
+        "\n",
+        "📦 STRICT OUTPUT SCHEMA:\n",
+        "{\n",
+        "  \"workOrder\": \"\",\n",
+        "  \"shipper\"/\"carrier\":\n",
+        "   {\n",
+        "    \"email\": \"\",\n",
+        "    \"phoneNo\": \"\",\n",
+        "    \"contactPerson\": \"\",\n",
+        "    \"fax\": \"\",\n",
+        "    \"name\": \"\",\n",
+        "    \"address\": \"\"\n",
+        "  },\n",
+        "\n",
+        "\n",
+        "  \"dotNumber\": \"\",\n",
+        "  \"rateReceived\": \"\",\n",
+        "  \"temperature\": \"\",\n",
+        "  \"temperatureUnit\": \"\",\n",
+        "\n",
+        "\n",
+        "  \"broker\": {\n",
+        "    \"email\": \"\",\n",
+        "    \"phoneNo\": \"\",\n",
+        "    \"contactPerson\": \"\",\n",
+        "    \"fax\": \"\",\n",
+        "    \"name\": \"\",\n",
+        "    \"address\": \"\"\n",
+        "  },\n",
+        "\n",
+        "\n",
+        "  \"stops\": [\n",
+        "    {\n",
+        "      \"location\": \"\",\n",
+        "      \"stopType\": \"Pickup/Dropoff\",\n",
+        "      \"shipper\": \"\",\n",
+        "      \"poNumber\": \"\",\n",
+        "      \"value\": \"\",\n",
+        "      \"quantity\": [\n",
+        "        {\n",
+        "          \"type\": \"Pallets\",\n",
+        "          \"value\": \"20\"\n",
+        "        }\n",
+        "      ],\n",
+        "      \"commodity\": \"\",\n",
+        "      \"weight\": \"\",\n",
+        "      \"shippingNotes\": \"\",\n",
+        "      \"appointmentTime\": \"\",\n",
+        "      \"appointmentTime2\": \"\",\n",
+        "      \"appointment number\": \"\",\n",
+        "      \"date\": \"\"\n",
+        "    }\n",
+        "  ]\n",
+        "}\n",
+        "\n",
+        "📌 FIELD & FORMAT RULES:\n",
+        "- Time: 24-hour `HH:MM` format only.\n",
+        "- Date: `YYYY-MM-DD` format only.\n",
+        "- `temperature` must be numeric, and `temperatureUnit` must be `\"F\"` or `\"C\"`.\n",
+        "- `quantity` must always be a **list** of objects.\n",
+        "- Always return all fields. Use `null` if a value is not found — do not hallucinate.\n",
+        "- If PO number or appointment number is mentioned, always extract it.\n",
+        " If dotnumber is mentioned, always extract.\n",
+        "- `rateReceived` should include the currency symbol if present (e.g., \"$1800\").\n",
+        "- `stopType` must be either `\"Pickup\"` or `\"Dropoff\"` — infer based on context.\n",
+        "- If multiple values are together (e.g. `04/10/2025 10:00`), split `date` and `time` accordingly.\n",
+        "- Email, phone, fax must be exact matches — no assumptions.\n",
+        "- `broker` and `shipper/carrier` must have their respective contact and address details individually extracted.\n",
+        "\n",
+        "---\n",
+        "\n",
+        "📌 FEW-SHOT EXAMPLE 1:\n",
+        "{\n",
+        "  \"workOrder\": \"24-1018339\",\n",
+        "  \"shipper\"/\"Carrier\":\n",
+        "  {\n",
+        "    \"email\": \"shipper@tysonfoods.com\",\n",
+        "    \"phoneNo\": \"888-111-2222\",\n",
+        "    \"contactPerson\": \"Jenny Smith\",\n",
+        "    \"fax\": \"888-123-4567\",\n",
+        "    \"name\": \"Tyson Foods\",\n",
+        "    \"address\": \"100 Chicken Dr, FORT WORTH, TX\"\n",
+        "  },\n",
+        "\n",
+        "  \"dotNumber\": \"3456789\",\n",
+        "  \"rateReceived\": \"$1500\",\n",
+        "  \"temperature\": \"34\",\n",
+        "  \"temperatureUnit\": \"F\",\n",
+        "\n",
+        "  \"broker\":\n",
+        "   {\n",
+        "    \"email\": \"dispatch@logixfreight.com\",\n",
+        "    \"phoneNo\": \"555-123-4567\",\n",
+        "    \"contactPerson\": \"Mark Thomas\",\n",
+        "    \"fax\": \"817-555-9001\",\n",
+        "    \"name\": \"LogiX Freight Co\",\n",
+        "    \"address\": \"123 Main St, Dallas, TX\"\n",
+        "  },\n",
+        "\n",
+        "  \"stops\": [\n",
+        "    {\n",
+        "      \"location\": \"FORT WORTH, TX 76106\",\n",
+        "      \"stopType\": \"Pickup\",\n",
+        "      \"shipper\": \"Tyson Foods\",\n",
+        "      \"poNumber\": \"PO12345\",\n",
+        "      \"value\": \"10000\",\n",
+        "      \"quantity\": [{\"type\": \"Pallets\", \"value\": \"22\"}],\n",
+        "      \"commodity\": \"Frozen Chicken\",\n",
+        "      \"weight\": \"22000 lbs\",\n",
+        "      \"shippingNotes\": \"Driver assist required\",\n",
+        "      \"appointment number\": \"12345\",\n",
+        "      \"appointmentTime\": \"10:00\",\n",
+        "      \"appointmentTime2\": null,\n",
+        "      \"date\": \"2025-02-17\"\n",
+        "    },\n",
+        "\n",
+        "    {\n",
+        "      \"location\": \"VERNON, CA 90058\",\n",
+        "      \"stopType\": \"Dropoff\",\n",
+        "      \"shipper\": \"Los Angeles Cold Storage\",\n",
+        "      \"poNumber\": \"5454546\",\n",
+        "      \"value\": \"23\",\n",
+        "      \"quantity\": [{\"type\": \"Pallets\", \"value\": \"22\"}],\n",
+        "      \"commodity\": \"Frozen Chicken\",\n",
+        "      \"weight\": \"22000 lbs\",\n",
+        "      \"shippingNotes\": null,\n",
+        "      \"appointment number\": \"54321\",\n",
+        "      \"appointmentTime\": \"12:00\",\n",
+        "      \"appointmentTime2\": \"18:34\",\n",
+        "      \"date\": \"2025-02-20\"\n",
+        "    }\n",
+        "  ]\n",
+        "}\n",
+        "\n",
+        "📌 FEW-SHOT EXAMPLE 2:\n",
+        "{\n",
+        "  \"workOrder\": \"71-1018308\",\n",
+        "  \"shipper\"/\"carrier\":\n",
+        "   {\n",
+        "    \"email\": \"logistics@cargillmeats.com\",\n",
+        "    \"phoneNo\": \"800-123-4567\",\n",
+        "    \"contactPerson\": \"George Brown\",\n",
+        "    \"fax\": \"800-456-7890\",\n",
+        "    \"name\": \"Cargill Meats\",\n",
+        "    \"address\": \"200 Beef Rd, EL PASO, TX\"\n",
+        "  },\n",
+        "\n",
+        "  \"dotNumber\": \"9876543\",\n",
+        "  \"rateReceived\": \"$1800\",\n",
+        "  \"temperature\": \"2\",\n",
+        "  \"temperatureUnit\": \"C\",\n",
+        "\n",
+        "  \"broker\":\n",
+        "  {\n",
+        "    \"email\": \"broker@freightmasters.com\",\n",
+        "    \"phoneNo\": \"999-999-9999\",\n",
+        "    \"contactPerson\": \"Lisa Ray\",\n",
+        "    \"fax\": \"999-888-7777\",\n",
+        "    \"name\": \"Freight Masters Inc.\",\n",
+        "    \"address\": \"789 Commerce Blvd, Dallas, TX\"\n",
+        "  },\n",
+        "\n",
+        "  \"stops\": [\n",
+        "    {\n",
+        "      \"location\": \"EL PASO, TX 79901\",\n",
+        "      \"stopType\": \"Pickup\",\n",
+        "      \"shipper\": \"Cargill Meats\",\n",
+        "      \"poNumber\": \"PO45678\",\n",
+        "      \"value\": null,\n",
+        "      \"quantity\": [{\"type\": \"Pallets\", \"value\": \"18\"}],\n",
+        "      \"commodity\": \"Beef\",\n",
+        "      \"weight\": \"18000 lbs\",\n",
+        "      \"shippingNotes\": \"Reefer must be pre-cooled\",\n",
+        "      \"appointment number\": \"67890\",\n",
+        "      \"appointmentTime\": \"08:00\",\n",
+        "      \"appointmentTime2\": null,\n",
+        "      \"date\": \"2025-02-10\"\n",
+        "    },\n",
+        "\n",
+        "    {\n",
+        "      \"location\": \"ONTARIO, CA 91761\",\n",
+        "      \"stopType\": \"Dropoff\",\n",
+        "      \"shipper\": \"Fresh Foods Inc.\",\n",
+        "      \"poNumber\": \"465478\",\n",
+        "      \"value\": null,\n",
+        "      \"quantity\": [{\"type\": \"Pallets\", \"value\": \"18\"}],\n",
+        "      \"commodity\": \"Beef\",\n",
+        "      \"weight\": \"18000 lbs\",\n",
+        "      \"shippingNotes\": \"Handle with care\",\n",
+        "      \"appointment number\": \"34567\",\n",
+        "      \"appointmentTime\": \"14:00\",\n",
+        "      \"appointmentTime2\": null,\n",
+        "      \"date\": \"2025-02-13\"\n",
+        "    }\n",
+        "  ]\n",
+        "}\n",
+        "\n",
+        "---\n",
+        "Now extract this information from the provided logistics rate confirmation document. Only return valid JSON.\n",
+        "\"\"\"\n",
+        ")\n",
+        "\n",
+        "# Prompt for the actual file\n",
+        "prompt = \"Please analyze this logistics rate confirmation PDF and extract the data in the exact JSON format above. Follow all formatting rules strictly.\"\n",
+        "\n",
+        "print(\"📨 Sending to Gemini...\")\n",
+        "response = model.generate_content([pdfFile, prompt], request_options={\"timeout\": 600})\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "id": "ctKwSpy8lFK8",
+        "outputId": "b25d6e63-2dff-4b9c-aa62-7b63c2ac50ad"
+      },
+      "execution_count": 43,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "📨 Sending to Gemini...\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "try:\n",
+        "    output_text = response.text.strip().replace(\"```json\", \"\").replace(\"```\", \"\")\n",
+        "    data = json.loads(output_text)\n",
+        "    print(\"✅ Extracted JSON:\")\n",
+        "    print(json.dumps(data, indent=2))\n",
+        "except json.JSONDecodeError as e:\n",
+        "    print(\"❌ JSON Decode Error:\", e)\n",
+        "    print(\"⚠️ Model output was:\\n\", output_text)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "0zEfz2hblFIB",
+        "outputId": "f9b632a1-3289-4ce6-c4c4-9a6d5d39f8fc"
+      },
+      "execution_count": 44,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "✅ Extracted JSON:\n",
+            "{\n",
+            "  \"workOrder\": \"0038411\",\n",
+            "  \"shipper/carrier\": {\n",
+            "    \"email\": \"shipping@bigwings.us\",\n",
+            "    \"phoneNo\": \"800-201-7010\",\n",
+            "    \"contactPerson\": \"HARDEEP RANA\",\n",
+            "    \"fax\": null,\n",
+            "    \"name\": \"BIG WINGS LLC\",\n",
+            "    \"address\": \"BAKERSFIELD, CA 93309\"\n",
+            "  },\n",
+            "  \"dotNumber\": null,\n",
+            "  \"rateReceived\": \"$1,550.00\",\n",
+            "  \"temperature\": \"60\",\n",
+            "  \"temperatureUnit\": null,\n",
+            "  \"broker\": {\n",
+            "    \"email\": \"logan@igtfreight.com\",\n",
+            "    \"phoneNo\": \"630-566-3631\",\n",
+            "    \"contactPerson\": \"Logan Tarlovschi\",\n",
+            "    \"fax\": null,\n",
+            "    \"name\": \"IGT Logistics\",\n",
+            "    \"address\": \"2001 York Rd.\\nOak Brook, IL 60523\"\n",
+            "  },\n",
+            "  \"stops\": [\n",
+            "    {\n",
+            "      \"location\": \"3315 E. DIVISION ST.\\nARLINGTON, TX 76011\",\n",
+            "      \"stopType\": \"Pickup\",\n",
+            "      \"shipper\": \"HUNTSMAN BUILDING SOLUTIONS\",\n",
+            "      \"poNumber\": null,\n",
+            "      \"value\": null,\n",
+            "      \"quantity\": [],\n",
+            "      \"commodity\": \"packaged materials (drums, totes, pails, etc.)\",\n",
+            "      \"weight\": \"40584.0\",\n",
+            "      \"shippingNotes\": \"No driver loading or unload\",\n",
+            "      \"appointmentTime\": \"12:00\",\n",
+            "      \"appointmentTime2\": \"12:30\",\n",
+            "      \"appointment number\": null,\n",
+            "      \"date\": \"2025-02-14\"\n",
+            "    },\n",
+            "    {\n",
+            "      \"location\": \"435 S 59TH AVE\\nPHOENIX, AZ 85043\",\n",
+            "      \"stopType\": \"Dropoff\",\n",
+            "      \"shipper\": \"HUNTSMAN BUILDING SOLUTIONS\",\n",
+            "      \"poNumber\": null,\n",
+            "      \"value\": null,\n",
+            "      \"quantity\": [],\n",
+            "      \"commodity\": \"packaged materials (drums, totes, pails, etc.)\",\n",
+            "      \"weight\": \"40584.0\",\n",
+            "      \"shippingNotes\": \"No driver loading or unload\",\n",
+            "      \"appointmentTime\": \"08:00\",\n",
+            "      \"appointmentTime2\": \"08:00\",\n",
+            "      \"appointment number\": null,\n",
+            "      \"date\": \"2025-02-17\"\n",
+            "    }\n",
+            "  ]\n",
+            "}\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
